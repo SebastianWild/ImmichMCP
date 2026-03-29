@@ -218,33 +218,21 @@ public static class PeopleTools
         [Description("Page number (default: 1)")] int page = 1,
         [Description("Page size (default: 25, max: 100)")] int size = 25)
     {
-        var assets = await client.GetPersonAssetsAsync(personId).ConfigureAwait(false);
-
-        // Enforce pagination limits
         size = Math.Min(Math.Max(size, 1), 100);
         page = Math.Max(page, 1);
 
-        var totalCount = assets.Count;
-        var skip = (page - 1) * size;
+        var result = await client.GetPersonAssetsAsync(personId, page, size).ConfigureAwait(false);
 
-        // Apply pagination
-        var pagedAssets = assets
-            .Skip(skip)
-            .Take(size)
-            .Select(AssetSummary.FromAsset)
-            .ToList();
-
-        var hasMore = skip + pagedAssets.Count < totalCount;
-        var nextPage = hasMore ? $"page={page + 1}&size={size}" : null;
+        var summaries = result.Items.Select(AssetSummary.FromAsset).ToList();
 
         var response = McpResponse<object>.Success(
-            pagedAssets,
+            summaries,
             new McpMeta
             {
                 Page = page,
                 PageSize = size,
-                Total = totalCount,
-                Next = nextPage,
+                Total = result.Total,
+                Next = result.NextPage,
                 ImmichBaseUrl = client.BaseUrl
             }
         );

@@ -106,8 +106,8 @@ public static class HealthTools
                     list = "/api/people",
                     get = "/api/people/{id}",
                     update = "/api/people/{id}",
-                    merge = "/api/people/{id}/merge",
-                    assets = "/api/people/{id}/assets"
+                    merge = "POST /api/people/{id}/merge",
+                    assets = "POST /api/search/metadata (personIds)"
                 },
                 tags = new
                 {

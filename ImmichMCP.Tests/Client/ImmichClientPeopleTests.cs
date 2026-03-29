@@ -70,4 +70,31 @@ public class ImmichClientPeopleTests
         // Assert
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task GetPersonAssetsAsync_UsesMetadataSearch_WhenSuccessful()
+    {
+        var (client, handler) = MockHttpClientFactory.CreateMockClient();
+        var personId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+        var asset = TestFixtures.CreateAsset(id: "asset-1");
+        var searchResult = new
+        {
+            assets = new
+            {
+                total = 1,
+                count = 1,
+                items = new[] { asset },
+                nextPage = (string?)null
+            }
+        };
+
+        handler.When(HttpMethod.Post, "*/search/metadata")
+            .Respond("application/json", TestFixtures.ToJson(searchResult));
+
+        var result = await client.GetPersonAssetsAsync(personId, page: 1, size: 25);
+
+        result.Items.Should().ContainSingle();
+        result.Items[0].Id.Should().Be("asset-1");
+        result.Total.Should().Be(1);
+    }
 }

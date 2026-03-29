@@ -534,11 +534,26 @@ public class ImmichClient
     }
 
     /// <summary>
-    /// Gets assets for a person.
+    /// Gets assets for a person via metadata search.
+    /// Immich no longer exposes <c>GET /api/people/{id}/assets</c>; this uses <c>POST /api/search/metadata</c>.
     /// </summary>
-    public async Task<List<Asset>> GetPersonAssetsAsync(string personId, CancellationToken cancellationToken = default)
+    public async Task<SearchAssetResult<Asset>> GetPersonAssetsAsync(
+        string personId,
+        int page = 1,
+        int? size = null,
+        CancellationToken cancellationToken = default)
     {
-        return await GetAsync<List<Asset>>($"api/people/{personId}/assets", cancellationToken).ConfigureAwait(false) ?? [];
+        var safePage = Math.Max(page, 1);
+        var safeSize = Math.Clamp(size ?? 25, 1, 1000);
+
+        var request = new MetadataSearchRequest
+        {
+            Page = safePage,
+            Size = safeSize,
+            PersonIds = [personId]
+        };
+
+        return await SearchMetadataAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion
