@@ -18,8 +18,19 @@ public class ImmichClientAssetTests
             TestFixtures.CreateAsset(id: "asset-2", originalFileName: "photo2.jpg")
         };
 
-        handler.When(HttpMethod.Get, "*/assets*")
-            .Respond("application/json", TestFixtures.ToJson(assets));
+        var searchResult = new
+        {
+            assets = new
+            {
+                total = 2,
+                count = 2,
+                items = assets,
+                nextPage = (string?)null
+            }
+        };
+
+        handler.When(HttpMethod.Post, "*/search/metadata")
+            .Respond("application/json", TestFixtures.ToJson(searchResult));
 
         // Act
         var result = await client.GetAssetsAsync();
@@ -37,8 +48,19 @@ public class ImmichClientAssetTests
         // Arrange
         var (client, handler) = MockHttpClientFactory.CreateMockClient();
 
-        handler.When(HttpMethod.Get, "*/assets*")
-            .Respond("application/json", "[]");
+        var searchResult = new
+        {
+            assets = new
+            {
+                total = 0,
+                count = 0,
+                items = Array.Empty<object>(),
+                nextPage = (string?)null
+            }
+        };
+
+        handler.When(HttpMethod.Post, "*/search/metadata")
+            .Respond("application/json", TestFixtures.ToJson(searchResult));
 
         // Act
         var result = await client.GetAssetsAsync();

@@ -74,7 +74,7 @@ public static class HealthTools
             {
                 assets = new
                 {
-                    list = "/api/assets",
+                    list = "POST /api/search/metadata",
                     get = "/api/assets/{id}",
                     upload = "/api/assets",
                     update = "/api/assets/{id}",

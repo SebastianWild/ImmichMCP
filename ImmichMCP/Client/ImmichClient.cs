@@ -95,7 +95,8 @@ public class ImmichClient
     #region Assets
 
     /// <summary>
-    /// Gets all assets with optional filters.
+    /// Lists assets with optional filters via metadata search.
+    /// Immich no longer exposes <c>GET /api/assets</c>; this uses <c>POST /api/search/metadata</c>.
     /// </summary>
     public async Task<List<Asset>> GetAssetsAsync(
         int? size = null,
@@ -107,21 +108,21 @@ public class ImmichClient
         bool? isTrashed = null,
         CancellationToken cancellationToken = default)
     {
-        var queryParams = new List<string>();
+        _ = userId;
 
-        if (size.HasValue) queryParams.Add($"size={size.Value}");
-        if (updatedAfter.HasValue) queryParams.Add($"updatedAfter={updatedAfter.Value:O}");
-        if (updatedBefore.HasValue) queryParams.Add($"updatedBefore={updatedBefore.Value:O}");
-        if (!string.IsNullOrEmpty(userId)) queryParams.Add($"userId={userId}");
-        if (isFavorite.HasValue) queryParams.Add($"isFavorite={isFavorite.Value.ToString().ToLower()}");
-        if (isArchived.HasValue) queryParams.Add($"isArchived={isArchived.Value.ToString().ToLower()}");
-        if (isTrashed.HasValue) queryParams.Add($"isTrashed={isTrashed.Value.ToString().ToLower()}");
+        var request = new MetadataSearchRequest
+        {
+            Page = 1,
+            Size = size,
+            UpdatedAfter = updatedAfter,
+            UpdatedBefore = updatedBefore,
+            IsFavorite = isFavorite,
+            IsArchived = isArchived,
+            IsTrashed = isTrashed
+        };
 
-        var url = queryParams.Count > 0
-            ? $"api/assets?{string.Join("&", queryParams)}"
-            : "api/assets";
-
-        return await GetAsync<List<Asset>>(url, cancellationToken).ConfigureAwait(false) ?? [];
+        var page = await SearchMetadataAsync(request, cancellationToken).ConfigureAwait(false);
+        return page.Items;
     }
 
     /// <summary>
